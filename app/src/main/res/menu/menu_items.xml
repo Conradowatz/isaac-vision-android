@@ -1,0 +1,29 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
+    <item
+        android:id="@+id/action_filter"
+        android:title="Filter"
+        android:orderInCategory="200"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/icon_action_filter">
+        <menu>
+            <item android:id="@+id/action_sort_id"
+                android:title="Ingame ID" />
+            <item android:id="@+id/action_sort_color"
+                android:title="Colour" />
+            <item android:id="@+id/action_sort_alphabetical"
+                android:title="Alphabetical" />
+
+        </menu>
+
+    </item>
+
+    <item
+        android:id="@+id/action_search"
+        android:orderInCategory="100"
+        android:icon="@drawable/icon_action_search"
+        app:showAsAction="always"
+        android:iconifiedByDefault="true"
+        app:actionViewClass="android.support.v7.widget.SearchView"
+        android:title="Search"/>
+</menu>

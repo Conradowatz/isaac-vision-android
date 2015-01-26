@@ -1,0 +1,44 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.astuetz.PagerSlidingTabStrip
+        android:id="@+id/item_PagerSlidingTabStrip"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/primary"
+        app:pstsIndicatorColor="@color/white"
+        app:pstsIndicatorHeight="2dp"
+        android:textColor="@color/white"
+        app:pstsTabPaddingLeftRight="14dp"/>
+
+    <com.sothree.slidinguppanel.SlidingUpPanelLayout
+        xmlns:sothree="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/item_slidingPanel_SlidingUpPanelLayout"
+        android:layout_below="@id/item_PagerSlidingTabStrip"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="bottom"
+        sothree:panelHeight="60dp"
+        sothree:shadowHeight="8dp"
+        sothree:anchorPoint="0.5">
+
+        <android.support.v4.view.ViewPager
+            android:id="@+id/items_ViewPager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+
+        <include layout="@layout/item_info_panel" android:id="@+id/item_panel_RelativeLayout"/>
+
+    </com.sothree.slidinguppanel.SlidingUpPanelLayout>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="fitXY"
+        android:layout_below="@id/item_PagerSlidingTabStrip"
+        android:src="@drawable/shadow_down"/>
+
+</RelativeLayout>

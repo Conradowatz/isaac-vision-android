@@ -1,0 +1,5 @@
+in app icons by Google are licensed under CC BY 3.0 http://creativecommons.org/licenses/by/3.0/
+
+app icon is an edited version of an icon by Google licensed under CC BY 3.0 http://creativecommons.org/licenses/by/3.0/ mixed with an icon Sergiu Bagrin licensed under CC BY 3.0 http://creativecommons.org/licenses/by/3.0/
+
+libarys used: Navigation-Drawer-MaterialDesign by rudsonlive: https://github.com/rudsonlive/NavigationDrawer-MaterialDesign is licensed under Apache License 2.0 http://www.apache.org/licenses/LICENSE-2.0

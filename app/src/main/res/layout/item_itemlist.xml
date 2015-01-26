@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="60dp"
+    android:layout_height="60dp"
+    android:id="@+id/itemListItem_layout_RelativeLayout">
+
+    <ImageView
+        android:id="@+id/itemListItem_image_imageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="5dp"
+        android:scaleType="fitXY" />
+
+    <View
+        android:id="@+id/itemListItem_frame_View"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/black_frame" />
+
+</RelativeLayout>
