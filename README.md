@@ -6,4 +6,4 @@ It currently has the following features implemented:
  - looking good
  
  The beta app can be wonloaded here:
- [Download](http://conradowatz.de/apps/isaacvision/isBETA.apk)
+ [Download](http://conradowatz.de/apps/isaacvision/ivBETA.apk)
