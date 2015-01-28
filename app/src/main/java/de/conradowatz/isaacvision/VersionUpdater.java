@@ -22,30 +22,30 @@ import org.json.JSONObject;
 
 import java.io.File;
 
-public class VersionUpdater {
+public abstract class VersionUpdater {
 
-    public static int CHANNEL_STABLE = 1;
-    public static int CHANNEL_BETA = 2;
+    public static String CHANNEL_STABLE = "stable";
+    public static String CHANNEL_BETA = "beta";
 
     private Context context;
     private long downloadID = -1L;
     private String downloadCompleteIntentName = DownloadManager.ACTION_DOWNLOAD_COMPLETE;
     private IntentFilter downloadCompleteIntentFilter = new IntentFilter(downloadCompleteIntentName);
 
-    class UpdateCheckerTask extends AsyncTask<Context, Void, Boolean> {
+    class UpdateCheckerTask extends AsyncTask<Void, Void, Boolean> {
 
         String downloadPath;
+        boolean downloadError = false;
 
         @Override
-        protected Boolean doInBackground(Context... params) {
-            Context context = params[0];
-            String jsonData = ItemGetter.downloadString("http://conradowatz.de/apps/isaacvision/versioninfo.php");
+        protected Boolean doInBackground(Void... params) {
+            String jsonData = SimpleDownloader.downloadString("http://conradowatz.de/apps/isaacvision/versioninfo.php");
 
             if (jsonData!=null) {
                 try {
                     JSONObject fullJson = new JSONObject(jsonData);
                     int latestVersion;
-                    if (getUpdateChannel(context)==VersionUpdater.CHANNEL_STABLE) {
+                    if (getUpdateChannel(context).equals(CHANNEL_STABLE)) {
                         //STABLE CHANNEL
                         latestVersion = fullJson.getInt("lateststable");
                         downloadPath = fullJson.getString("stabledownload");
@@ -57,11 +57,9 @@ public class VersionUpdater {
                     PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
                     int versionNumber = pInfo.versionCode;
 
-                    if (latestVersion>versionNumber) {
-                        return true;
-                    } else {
-                        return false;
-                    }
+                    if (latestVersion>versionNumber) return true;
+                    else return false;
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 } catch (PackageManager.NameNotFoundException e) {
@@ -69,28 +67,39 @@ public class VersionUpdater {
                 }
             }
 
+            downloadError = true;
             return  false;
         }
 
         @Override
         protected void onPostExecute(Boolean newVersionAvailable) {
-            if (newVersionAvailable) {
-                showUpdateDialog(downloadPath);
+            if (!downloadError) {
+                onFinish(newVersionAvailable);
+                if (newVersionAvailable) showUpdateDialog(downloadPath);
+            } else {
+                onError("Connection error!");
             }
         }
     }
 
-    public void start(Context context) {
-        new UpdateCheckerTask().execute(context);
+    public void start() {
+        new UpdateCheckerTask().execute();
+    }
+
+    public VersionUpdater(Context context) {
         this.context = context;
     }
+
+    abstract void onFinish(boolean newVersionAvailable);
+
+    abstract void onError(String message);
 
     private void showUpdateDialog(final String downloadPath) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
         builder.setTitle("New version available!");
         String updateChannel = "STABLE";
-        if (getUpdateChannel(context)==CHANNEL_BETA) {
+        if (getUpdateChannel(context).equals(CHANNEL_BETA)) {
             updateChannel = "BETA";
         }
         String updateMessage = "A new version of Isaac Vision is available for download." + "\n" + "Update channel: " + updateChannel + "\n" + "Do you wan't to download it now?";
@@ -172,13 +181,9 @@ public class VersionUpdater {
         }
     };
 
-    public static int getUpdateChannel(Context context) {
-        return PreferenceReader.readIntFromPreferences(context, "update-channel", -1);
-    }
+    public static String getUpdateChannel(Context context) {
+        return PreferenceReader.readStringFromPreferences(context, SettingsFragment.KEY_UPDATE_CHANNEL, CHANNEL_BETA);
 
-    public static void setUpdateChannel(Context context, int updateChannel) {
-        PreferenceReader.saveIntToPreferences(context, "update-channel", updateChannel);
     }
-
 
 }

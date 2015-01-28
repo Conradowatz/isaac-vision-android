@@ -18,11 +18,6 @@ public class Item implements Parcelable{
     private Float alphabetID;
     private Integer gameID;
 
-    public static final int SORTORDER_ID = 1;
-    public static final int SORTORDER_COLOR = 2;
-    public static final int SORTORDER_ALPHABETICAL = 3;
-
-
     public Item(String title, String pickup, String description, String extraInfo, String tags, Boolean specialItem, Bitmap image, String colorID, Float alphabetID, Integer gameID) {
         this.title = title;
         this.pickup = pickup;

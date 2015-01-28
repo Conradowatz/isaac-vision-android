@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="App settings">
+        <ListPreference
+            android:defaultValue="@string/default_update_channel"
+            android:dialogTitle="Choose your update channel"
+            android:entries="@array/update_channels"
+            android:entryValues="@array/update_channel_values"
+            android:key="update_channel"
+            android:selectable="false"
+            android:summary="App update channel"
+            android:title="Update Channel" />
+
+        <Preference
+            android:key="check-for-update"
+            android:title="Check for updates" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Items">
+        <Preference
+            android:key="redownload-items"
+            android:title="Redownload items"
+            android:summary="Refresh the item database by downloading it again"/>
+    </PreferenceCategory>
+</PreferenceScreen>

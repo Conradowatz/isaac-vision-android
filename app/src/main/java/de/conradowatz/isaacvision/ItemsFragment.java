@@ -64,8 +64,18 @@ public class ItemsFragment extends android.support.v4.app.Fragment {
 
         //get the itemLists via AsyncTask
         if (savedInstanceState == null) { //makes sure they are not again called
-            ItemGetter itemGetter = new ItemGetter();
-            itemGetter.start(this);
+            new ItemGetter(getActivity()){
+
+                @Override
+                void onFinished(ArrayList<Item>[] items) {
+                    gotItems(items);
+                }
+
+                @Override
+                void onError(String message) {
+                    //TODO make error
+                }
+            }.start();
         }
 
         if (panelIsUp != null) { //set state of the slideUpPanel
@@ -108,11 +118,6 @@ public class ItemsFragment extends android.support.v4.app.Fragment {
             ItemListFragment itemListFragment = (ItemListFragment) viewPager.getAdapter().instantiateItem(viewPager, i);
             itemListFragment.setUp(itemList[i], i);
         }
-
-    }
-
-    //is called when the ItemGetter throws a download error
-    public void onDownloadError() {
 
     }
 

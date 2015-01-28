@@ -17,27 +17,30 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-public class ItemGetter {
+public abstract class ItemGetter {
 
-    String itemImageFilePath;
-    String trinketImageFilePath;
-    String cardImageFilePath;
-    String jsonTextFilePath;
+    private String itemImageFilePath;
+    private String trinketImageFilePath;
+    private String cardImageFilePath;
+    private String jsonTextFilePath;
 
-    public class ItemDownLoadTask extends AsyncTask<ItemsFragment, Void, ArrayList<Item>[]> {
+    Context context;
+    private int getterMode;
 
-        private ItemsFragment parent;
+    public static final int GETTERMODE_CHECK = 0;
+    public static final int GETTERMODE_DOWNLOAD = 1;
+    public static final int GETTERMODE_STORAGE = 2;
+
+
+
+    private class ItemDownLoadTask extends AsyncTask<Void, Void, ArrayList<Item>[]> {
 
         @Override
-        protected ArrayList<Item>[] doInBackground(ItemsFragment... params) {
+        protected ArrayList<Item>[] doInBackground(Void... params) {
 
-            parent = params[0];
-
-            String jsonData = downloadString("http://conradowatz.de/apps/isaacvision/isaacdatabase.html");
+            String jsonData = SimpleDownloader.downloadString("http://conradowatz.de/apps/isaacvision/isaacdatabase.html");
             //json encoding
 
             String itemImagedownload = null;
@@ -50,14 +53,14 @@ public class ItemGetter {
                 trinketImageDownload = imagelinks.getString("trinkets");
                 cardImageDownload = imagelinks.getString("cards");
 
-            } catch (JSONException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
             //download images
-            Bitmap itemsImage = downloadImage(itemImagedownload);
-            Bitmap trinketsImage = downloadImage(trinketImageDownload);
-            Bitmap cardsImage = downloadImage(cardImageDownload);
+            Bitmap itemsImage = SimpleDownloader.downloadImage(itemImagedownload);
+            Bitmap trinketsImage = SimpleDownloader.downloadImage(trinketImageDownload);
+            Bitmap cardsImage = SimpleDownloader.downloadImage(cardImageDownload);
 
             if (itemsImage==null || trinketsImage==null || cardsImage==null) {
                 return null;
@@ -92,6 +95,16 @@ public class ItemGetter {
 
             ArrayList<Item>[] itemList = makeItemList(jsonData, itemsImage, trinketsImage, cardsImage);
 
+            if (itemList!=null) {
+                //sort items
+                int sortOrder = FilterParams.getSavedSortOrder(context);
+                if (sortOrder!=FilterParams.SORT_ORDER_ALPHABETICAL) {
+                    for (ArrayList<Item> item : itemList) {
+                        FilterParams.sortItemList(item, sortOrder);
+                    }
+                }
+            }
+
             return itemList;
         }
 
@@ -99,36 +112,23 @@ public class ItemGetter {
         protected void onPostExecute(ArrayList<Item>[] items) {
 
             if (items==null) {
-                parent.onDownloadError();
+                onError("Download error!");
                 return;
             }
 
-            //sort items
-            int sortOrder = FilterParams.getSavedSortOrder(parent.getActivity());
-            if (sortOrder!=FilterParams.SORT_ORDER_ALPHABETICAL) {
-                for (ArrayList<Item> item : items) {
-                    FilterParams.sortItemList(item, sortOrder);
-                }
-            }
-
-            parent.gotItems(items);
+            onFinished(items);
         }
     }
 
-    public class ItemStorageTask extends AsyncTask<ItemsFragment, Void, ArrayList<Item>[]> {
-
-        private ItemsFragment parent;
+    private class ItemStorageTask extends AsyncTask<Void, Void, ArrayList<Item>[]> {
 
         @Override
-        protected ArrayList<Item>[] doInBackground(ItemsFragment... params) {
+        protected ArrayList<Item>[] doInBackground(Void... params) {
 
             Bitmap itemImage = null;
             Bitmap trinketImage = null;
             Bitmap cardImage = null;
             String jsonText = null;
-
-            parent = params[0];
-            Context context = parent.getActivity().getApplicationContext();
 
             //load item image
             FileInputStream inputStream;
@@ -173,85 +173,86 @@ public class ItemGetter {
             }
 
             ArrayList<Item>[] itemList = makeItemList(jsonText, itemImage, trinketImage, cardImage);
+
+            if (itemList!=null) {
+                //sort items
+                int sortOrder = FilterParams.getSavedSortOrder(context);
+                if (sortOrder!=FilterParams.SORT_ORDER_ALPHABETICAL) {
+                    for (ArrayList<Item> item : itemList) {
+                        FilterParams.sortItemList(item, sortOrder);
+                    }
+                }
+            }
+
             return itemList;
         }
 
         @Override
         protected void onPostExecute(ArrayList<Item>[] items) {
-            //sort items
-            int sortOrder = FilterParams.getSavedSortOrder(parent.getActivity());
-            if (sortOrder!=FilterParams.SORT_ORDER_ALPHABETICAL) {
-                for (ArrayList<Item> item : items) {
-                    FilterParams.sortItemList(item, sortOrder);
-                }
+
+            if (items==null) {
+                onError("Loading error!");
+                return;
             }
 
-            parent.gotItems(items);
+            onFinished(items);
         }
     }
 
-    public void start(ItemsFragment context) {
+    public void start() {
 
-        Context applicationContext = context.getActivity().getApplicationContext();
+        if (getterMode<0 || getterMode>2) {
+            Log.d("ItemGetterError", "GetterMode false!");
+            return;
+        }
+
+        Context applicationContext = context.getApplicationContext();
 
         itemImageFilePath = applicationContext.getFilesDir() + "/rebirth-items-final.png";
         trinketImageFilePath = applicationContext.getFilesDir() + "/rebirth-trinkets-final.png";
         cardImageFilePath = applicationContext.getFilesDir() + "/rebirth-cards-final.png";
         jsonTextFilePath = applicationContext.getFilesDir() + "/items-json.txt";
 
-        File itemImageFile = new File(itemImageFilePath);
-        File trinketImageFile= new File(trinketImageFilePath);
-        File cardImageFile = new File(cardImageFilePath);
-        File jsonTextFile = new File(jsonTextFilePath);
+        if (getterMode==GETTERMODE_CHECK) {
 
-        Boolean exists = (itemImageFile.exists() && trinketImageFile.exists() && cardImageFile.exists() && jsonTextFile.exists());
+            File itemImageFile = new File(itemImageFilePath);
+            File trinketImageFile = new File(trinketImageFilePath);
+            File cardImageFile = new File(cardImageFilePath);
+            File jsonTextFile = new File(jsonTextFilePath);
 
-        if (exists) {
-            new ItemStorageTask().execute(context);
-            Log.d("IG", "load from save data...");
-        } else {
-            new ItemDownLoadTask().execute(context);
-            Log.d("IG", "start downloading data...");
-        }
-    }
+            Boolean exists = (itemImageFile.exists() && trinketImageFile.exists() && cardImageFile.exists() && jsonTextFile.exists());
 
-
-
-    public static String downloadString(String downloadLink) {
-        String resultString = null;
-        try {
-            InputStream in = new java.net.URL(downloadLink).openStream();
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"), 8);
-            StringBuilder sb = new StringBuilder();
-            sb.append(reader.readLine() + "\n");
-
-            String line = "0";
-            while ((line = reader.readLine()) != null) {
-                sb.append(line + "\n");
+            if (exists) {
+                new ItemStorageTask().execute();
+                Log.d("IG", "load from save data...");
+            } else {
+                new ItemDownLoadTask().execute();
+                Log.d("IG", "start downloading data...");
             }
-            in.close();
-            resultString = sb.toString();
-        } catch (Exception e) {
-            Log.d("STRING", "String download Error:");
-            Log.e("STRING", e.getMessage());
+        } else if (getterMode==GETTERMODE_DOWNLOAD) {
+            new ItemDownLoadTask().execute();
+            Log.d("IG", "start downloading data...");
+        } else {
+            new ItemStorageTask().execute();
+            Log.d("IG", "load from save data...");
         }
-        return resultString;
     }
 
-    public static Bitmap downloadImage(String downloadLink) {
-        Bitmap resultBitmap = null;
-        try {
-            InputStream in = new java.net.URL(downloadLink).openStream();
-            resultBitmap = BitmapFactory.decodeStream(in);
-        } catch (Exception e) {
-            Log.d("IMAGE", "Image download Error:");
-            Log.e("IMAGE", e.getMessage());
-        }
-        return resultBitmap;
+    public ItemGetter(Context context, int getterMode) {
+        this.context = context;
+        this.getterMode = getterMode;
     }
 
-    public static ArrayList<Item>[] makeItemList(String jsonData, Bitmap itemsImage, Bitmap trinketsImage, Bitmap cardsImage) {
+    public ItemGetter(Context context) {
+        this.context = context;
+        this.getterMode = GETTERMODE_CHECK;
+    }
+
+    abstract void onFinished(ArrayList<Item>[] items);
+
+    abstract void onError(String message);
+
+    private static ArrayList<Item>[] makeItemList(String jsonData, Bitmap itemsImage, Bitmap trinketsImage, Bitmap cardsImage) {
         //json encoding
 
         ArrayList<Item> itemList = new ArrayList<>();

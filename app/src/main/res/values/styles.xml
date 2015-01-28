@@ -9,11 +9,13 @@
     </style>
 
     <!--Here will be the theme of the class that will extends NavigationLiveo-->
-    <style name="nLiveoDrawer" parent="nLiveo.Theme.DarkActionBar">
+    <style name="MainActivityTheme" parent="MaterialNavigationDrawerTheme.Light.DarkActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/statusbar</item>
         <item name="colorAccent">@color/accent</item>
+
+        <item name="drawerType">@integer/DRAWERTYPE_IMAGE</item>
     </style>
 
 
